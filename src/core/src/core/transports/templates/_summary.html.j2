@@ -1,0 +1,13 @@
+{# Summary after the problem table: digest and test messages. #}
+{% set d = m.digest %}
+<p style="margin:12px 0 4px 0;font-weight:bold;">Total {{ d.total }}{% if not d.total_exact %}+{% endif %} active problem{% if d.total != 1 %}s{% endif %}</p>
+<p style="margin:0 0 4px 0;color:#5b6b75;font-size:12px;">Generated at {{ m.generated_at }} ({{ m.timezone }})</p>
+<p style="margin:0 0 4px 0;">Source: <a href="{{ m.links.widget }}" style="color:#0a66b7;">{% if d.widget_name %}widget "{{ d.widget_name }}"{% else %}Problems widget{% endif %}{% if d.dashboard_name %} on dashboard "{{ d.dashboard_name }}"{% endif %}</a></p>
+{% set f = d.filters or {} %}
+{% set notes = [] %}
+{% if f.min_severity %}{% set _ = notes.append("minimal severity " ~ f.min_severity.name) %}{% endif %}
+{% if f.hide_acknowledged %}{% set _ = notes.append("acknowledged problems hidden") %}{% endif %}
+{% if f.hide_suppressed %}{% set _ = notes.append("suppressed problems hidden") %}{% endif %}
+{% if notes %}
+<p style="margin:0 0 4px 0;">Subscription filters: {{ notes | join("; ") }}.</p>
+{% endif %}

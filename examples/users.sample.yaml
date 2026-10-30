@@ -1,0 +1,34 @@
+# User configuration for file mode. Keep this file secret: chmod 600.
+# Validate with: python -m core -c core.yaml validate-users users.yaml
+# Values marked CHANGE-ME are placeholders.
+
+revision: 1
+
+users:
+  - email: alice@example.com                       # CHANGE-ME: must be an email media of the Zabbix user
+    zabbix_token: CHANGE-ME-zabbix-api-token-of-alice
+    subscriptions:
+      - id: a1b2                                   # unique hex ID; generate with: ... new-id --file users.yaml
+        name: Database servers                     # optional; shown in subject and report
+        # Dashboard link. The first Problems widget of the dashboard is used (first page, top-left).
+        widget_url: https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=12
+        time: "08:30"                              # daily, Core time zone; quote the value
+        # transport: email                         # default: email
+        # enabled: true                            # default: true
+        # Filter overrides; they only narrow the widget filter. Default: widget setting.
+        # min_severity: High                       # 0-5 or a severity name
+        # hide_acknowledged: true
+        # hide_suppressed: true
+
+      - id: 3f0c
+        widget_url: https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=15
+        time: "17:00"
+        enabled: false
+
+  - email: bob@example.com                         # CHANGE-ME
+    zabbix_token: CHANGE-ME-zabbix-api-token-of-bob
+    subscriptions:
+      - id: 9e41
+        name: Network
+        widget_url: https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=20
+        time: "09:00"

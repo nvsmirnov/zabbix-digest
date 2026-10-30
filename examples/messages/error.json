@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "type": "error",
+  "generated_at": "2026-10-28T06:10:00+01:00",
+  "timezone": "Europe/Berlin",
+  "recipient": {
+    "email": "alice@example.com"
+  },
+  "subscription": {
+    "id": "a1b2",
+    "name": "DB",
+    "transport": "email",
+    "options": {}
+  },
+  "header": null,
+  "footer": null,
+  "unsubscribe": {
+    "url": "https://digest.example.com/unsubscribe/EXAMPLE-unsubscribe-token-0001",
+    "text": "To unsubscribe from this digest, contact your Zabbix administrator."
+  },
+  "links": {
+    "widget": "https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=12",
+    "zabbix": "https://zabbix.example.com"
+  },
+  "error": {
+    "category": "widget_not_found",
+    "message": "The Problems widget of this subscription was not found or is not accessible.",
+    "details": "the dashboard was not found or is not accessible"
+  }
+}

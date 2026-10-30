@@ -1,0 +1,103 @@
+# Zabbix Digest Core configuration.
+# Every key can be overridden by an environment variable: nested keys are joined with "__",
+# e.g. SMTP__HOST overrides smtp.host, SCHEDULER__MAX_WORKERS overrides scheduler.max_workers.
+# Durations accept seconds or strings like "30s", "5m", "2h".
+# Values marked CHANGE-ME are placeholders.
+
+zabbix:
+  url: https://zabbix.example.com        # CHANGE-ME: Zabbix frontend base URL (API: <url>/api_jsonrpc.php)
+  timeout: 30s
+  verify_tls: true
+  ca_file: null                         # default: SSL_CERT_FILE/SSL_CERT_DIR, then the certifi bundle
+  max_concurrent_requests: 10           # global limit of simultaneous Zabbix API requests
+  retry:                                # per-request retries of temporary errors
+    attempts: 3
+    initial_delay: 2s
+    max_delay: 30s
+  max_problems: 5000                    # upper bound fetched per digest; more marks the report incomplete
+  ignore_unknown_widget_fields: false
+
+users:
+  source: file                          # file | http
+  file: /data/users.yaml                # used in file mode
+  cache_file: /data/cache/users.cache.yaml   # used in http mode
+  poll_interval: 5m                     # http mode: periodic fetch from frontend (file mode: read at startup only)
+  startup_retry:
+    attempts: 5
+    initial_delay: 2s
+    max_delay: 30s
+
+frontend:
+  url: null                             # http mode: internal URL of the web backend, e.g. http://web:8080
+  public_url: null                      # public URL for unsubscribe links, e.g. https://digest.example.com
+
+# Shared key for /internal/* in both directions. Required in http mode. At least 16 characters.
+internal_api_key: null                  # CHANGE-ME when used
+# Proxies from the environment (HTTP_PROXY, HTTPS_PROXY, ALL_PROXY, NO_PROXY).
+proxy_use_internal: false               # requests to the web frontend
+proxy_use_zabbix: true                  # requests to the Zabbix API
+
+http:
+  enabled: true
+  host: 0.0.0.0
+  port: 8081
+
+scheduler:
+  timezone: null                        # IANA name; empty: TZ env, then system zone, then UTC
+  tick_interval: 30s
+  max_workers: 5
+  delivery_window: 2h                   # max 12h
+  retry_interval: 10m                   # pause between scheduled retries inside the window
+  cleanup_interval: 1h
+  shutdown_timeout: 60s
+
+state_dir: /data/state
+
+transports:
+  email:
+    type: email
+    public: true
+    send_timeout: 30s
+    retry:
+      attempts: 3
+      initial_delay: 10s
+      max_delay: 60s
+    settings:
+      subject_prefix: ""
+      template_dir: null                # directory with custom templates (digest/error/test.html.j2)
+      # from_address: digest@example.com
+      # smtp: {...}                     # overrides the global smtp section for this transport
+  # custom_sender:
+  #   type: external
+  #   public: false
+  #   send_timeout: 30s
+  #   settings:
+  #     command: ["/opt/sender/send.py", "--channel", "ops"]
+  #     env: {SENDER_MODE: "production"}
+  #     log_stderr: false
+
+smtp:
+  host: smtp.example.com                # CHANGE-ME
+  port: 587
+  security: starttls                    # none | starttls | tls (implicit TLS, usually port 465)
+  username: null
+  password: null                        # prefer SMTP__PASSWORD environment variable
+  verify_tls: true
+  ca_file: null                         # default: SSL_CERT_FILE/SSL_CERT_DIR, then the certifi bundle
+  timeout: 30s
+  from_address: zabbix-digest@example.com   # CHANGE-ME
+
+messages:
+  header: null
+  footer: null
+  unsubscribe_text: "To unsubscribe from this digest, contact the monitoring team: monitoring@example.com."
+
+log:
+  level: INFO
+  format: json                          # json | text; LOG_FORCE_TEXT_STDOUT=true forces text to stdout
+  file: null                            # e.g. /data/logs/core.log (rotated)
+  max_bytes: 10485760
+  backup_count: 5
+
+sentry_dsn: null
+sentry_environment: null

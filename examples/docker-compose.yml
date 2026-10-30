@@ -1,0 +1,143 @@
+# Core in http mode + web frontend. Build context is the repository root
+# (paths in this file are relative to examples/). Run from the repository root.
+#
+# Real Zabbix and SMTP server:
+#   cp examples/env.sample examples/.env    # set ZABBIX_URL, SMTP_*, keys
+#   docker compose -f examples/docker-compose.yml up --build -d
+#
+# Demo without Zabbix (profile "demo": Zabbix API stub + Mailpit as SMTP test server):
+#   docker compose -f examples/docker-compose.yml --profile demo up --build
+#   UI: http://localhost:8080   Mail: http://localhost:8025   Zabbix stub: http://zabbix.localhost:8090
+#   Sign in with a stub token below and add a subscription with the dashboard link
+#     http://zabbix.localhost:8090/zabbix.php?action=dashboard.view&dashboardid=1
+#   The defaults below (stub URL, Mailpit, placeholder keys) are for the demo only.
+#
+# Send digests now: docker compose -f examples/docker-compose.yml exec core python -m core once --force
+
+x-internal-key: &internal_key ${INTERNAL_API_KEY:-CHANGE-ME-local-internal-api-key}
+x-tls: &tls
+  # Trusted CA certificates for all TLS connections (Zabbix, SMTP, Core <-> web).
+  # Empty: the certifi bundle. See examples/env.sample.
+  SSL_CERT_FILE: ${SSL_CERT_FILE:-}
+  SSL_CERT_DIR: ${SSL_CERT_DIR:-}
+# SMTP: Core only. Core sends digests and the emails of the web frontend (login links, unsubscribe).
+x-smtp: &smtp
+  SMTP__HOST: ${SMTP_HOST:-mailpit}
+  SMTP__PORT: ${SMTP_PORT:-1025}
+  SMTP__SECURITY: ${SMTP_SECURITY:-none}
+  SMTP__USERNAME: ${SMTP_USERNAME:-}
+  SMTP__PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP__FROM_ADDRESS: ${SMTP_FROM:-zabbix-digest@example.com}
+# Stub users as email=token pairs. admin@example.com is a frontend administrator (ADMIN_EMAILS).
+#   demo@example.com   token 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+#   admin@example.com  token fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210
+x-stub-users: &stub_users >-
+  demo@example.com=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  admin@example.com=fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210
+# Build arguments (see the Dockerfiles). The defaults must match the Dockerfiles:
+# an empty value would override the Dockerfile default.
+x-build-args: &build_args
+  BASE_IMAGE_PYTHON: ${BASE_IMAGE_PYTHON:-python:3.12-slim}
+  BUILD_EXTRA_CMD: ${BUILD_EXTRA_CMD:-}
+  APP_UID: ${APP_UID:-10001}
+  APP_GID: ${APP_GID:-10001}
+x-core-build: &core_build
+  context: ..
+  dockerfile: src/core/Dockerfile
+  args: *build_args
+
+services:
+  core:
+    build: *core_build
+    image: zabbix-digest-core:local
+    environment:
+      <<: [*tls, *smtp]
+      CORE_CONFIG: ""
+      TZ: ${TZ:-UTC}
+      # Demo default: zabbix.localhost resolves to the stub inside Docker (network alias)
+      # and to 127.0.0.1 in the browser, so links in digests open the stub too.
+      ZABBIX__URL: ${ZABBIX_URL:-http://zabbix.localhost:8090}
+      USERS__SOURCE: http
+      USERS__CACHE_FILE: /data/cache/users.cache.yaml
+      FRONTEND__URL: http://web:8080
+      FRONTEND__PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      INTERNAL_API_KEY: *internal_key
+      PROXY_USE_INTERNAL: ${PROXY_USE_INTERNAL:-false}
+      PROXY_USE_ZABBIX: ${PROXY_USE_ZABBIX:-true}
+      STATE_DIR: /data/state
+      LOG__FORMAT: text
+    volumes:
+      - core-data:/data
+    ports:
+      - "8081:8081"
+    depends_on:
+      web:
+        condition: service_started
+      mailpit:
+        condition: service_started
+        required: false
+      zabbix-stub:
+        condition: service_started
+        required: false
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: src/web/Dockerfile
+      args:
+        <<: *build_args
+        BASE_IMAGE_NODE: ${BASE_IMAGE_NODE:-node:22-slim}
+        BUILD_EXTRA_CMD_UI: ${BUILD_EXTRA_CMD_UI:-}
+    environment:
+      <<: *tls
+      WEB_CONFIG: ""
+      INTERNAL_API_KEY: *internal_key
+      PROXY_USE_INTERNAL: ${PROXY_USE_INTERNAL:-false}
+      SESSION_SECRET: ${SESSION_SECRET:-CHANGE-ME-local-session-secret-0123456789abcdef}
+      USERS_FILE: /data/users.yaml
+      STATE_DIR: /data/web-state
+      CORE_URL: http://core:8081
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@example.com}
+      HELP_URL: ${HELP_URL:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      LOG__FORMAT: text
+    volumes:
+      - web-data:/data
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  zabbix-stub:
+    profiles: [demo]
+    # Runs examples/zabbix-stub/stub.py in the Core image (it has PyYAML).
+    build: *core_build
+    image: zabbix-digest-core:local
+    entrypoint: ["python", "/stub/stub.py"]
+    command: []
+    environment:
+      STUB_USERS: *stub_users
+      STUB_DATA: /stub/data.yaml
+      STUB_PORT: "8090"
+    volumes:
+      - ./zabbix-stub:/stub:ro
+    ports:
+      - "8090:8090"
+    networks:
+      default:
+        aliases:
+          - zabbix.localhost
+
+  mailpit:
+    profiles: [demo]
+    image: axllent/mailpit:v1.21
+    environment:
+      # Log every received message (sender and subject).
+      MP_VERBOSE: "true"
+    ports:
+      - "8025:8025"
+
+volumes:
+  core-data:
+  web-data:

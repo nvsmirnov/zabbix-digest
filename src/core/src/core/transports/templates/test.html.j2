@@ -1,0 +1,11 @@
+{% extends "base.html.j2" %}
+{# Same layout as the digest; the banner stays on top. #}
+{% block banner %}
+<div style="margin:0 0 12px 0;padding:10px 12px;background:#1f2c33;color:#ffffff;font-size:18px;font-weight:bold;text-align:center;">TEST MESSAGE - the problems below are not real</div>
+{% endblock %}
+{% block heading %}{% endblock %}
+{% block content %}
+{% include "_problems.html.j2" %}
+{% include "_summary.html.j2" %}
+<p style="margin:0 0 4px 0;color:#5b6b75;font-size:12px;">This test message uses synthetic data. It shows how digests of subscription #{{ m.subscription.id }} look in this delivery channel.</p>
+{% endblock %}

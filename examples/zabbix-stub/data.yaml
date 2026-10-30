@@ -1,0 +1,67 @@
+# Static data of the Zabbix API stub (stub.py).
+# Users (tokens and emails) come from STUB_USERS. All users see the same data.
+# Restart the stub after changes.
+
+hostgroups:
+  - {groupid: 1, name: Linux}
+  - {groupid: 2, name: Linux/DB}
+  - {groupid: 3, name: Windows}
+
+hosts:
+  - {hostid: 101, name: db1, groups: [2]}
+  - {hostid: 102, name: app1, groups: [1]}
+  - {hostid: 103, name: app2, groups: [1]}
+  - {hostid: 104, name: web1, groups: [1]}
+  - {hostid: 105, name: test1, groups: [1]}
+  - {hostid: 106, name: win1, groups: [3]}
+
+# Widget fields in compact form: a list becomes "name.N", a list of mappings
+# becomes "name.N.key". Field names and values are those of the Zabbix 7.0
+# Problems widget (see docs/zabbix-notes.md). Omitted fields use Zabbix defaults.
+dashboards:
+  - dashboardid: 1
+    name: Demo
+    pages:
+      - widgets:
+          - {type: clock, name: Clock, x: 0, y: 0}
+          - type: problems
+            name: Linux problems
+            x: 0
+            y: 2
+            fields:
+              groupids: [1]             # Linux, includes the subgroup Linux/DB
+              severities: [2, 3, 4, 5]  # Warning and higher
+              evaltype: 0               # And/Or
+              tags:
+                - {tag: env, operator: 3, value: test}  # tag env does not equal "test"
+              show_tags: 3
+              sort_triggers: 1          # severity, descending
+              show_lines: 5
+          # Not used: the digest takes the top-left Problems widget.
+          - {type: problems, name: Everything, x: 0, y: 8}
+
+# age: seconds since the problem started (computed at request time).
+# Expected widget result: 6 matching problems, the digest shows 5 and warns
+# that the report is incomplete. With minimal severity High: 2 problems,
+# with "hide acknowledged" in addition: 1 problem.
+problems:
+  - {eventid: 1001, triggerid: 2001, hostids: [101], severity: 5, age: 11000, name: "Disk is full on /var/lib/mysql",
+     tags: [{tag: service, value: db}]}
+  - {eventid: 1002, triggerid: 2002, hostids: [102], severity: 4, age: 2820, name: High CPU load,
+     acknowledged: true, tags: [{tag: service, value: compute}]}
+  - {eventid: 1003, triggerid: 2003, hostids: [103], severity: 3, age: 7300, name: Memory usage over 90%}
+  - {eventid: 1004, triggerid: 2004, hostids: [104], severity: 2, age: 432000, name: Certificate expires in 10 days,
+     tags: [{tag: scope, value: security}]}
+  - {eventid: 1005, triggerid: 2005, hostids: [103], severity: 3, age: 600, name: Swap usage is high}
+  - {eventid: 1006, triggerid: 2006, hostids: [104], severity: 2, age: 90, name: Slow responses on /api,
+     tags: [{tag: service, value: web}]}
+  # Hidden by the widget severity filter.
+  - {eventid: 1007, triggerid: 2007, hostids: [102], severity: 1, age: 300, name: Configuration was changed}
+  - {eventid: 1008, triggerid: 2008, hostids: [102], severity: 0, age: 300, name: Unclassified check}
+  # Hidden: suppressed (the widget does not show suppressed problems).
+  - {eventid: 1009, triggerid: 2009, hostids: [101], severity: 4, age: 1200, name: Replication lag, suppressed: true}
+  # Hidden: host group Windows is not selected.
+  - {eventid: 1010, triggerid: 2010, hostids: [106], severity: 4, age: 1800, name: Service Spooler is stopped}
+  # Hidden by the tag filter env != test.
+  - {eventid: 1011, triggerid: 2011, hostids: [105], severity: 5, age: 400, name: Test host is unreachable,
+     tags: [{tag: env, value: test}]}

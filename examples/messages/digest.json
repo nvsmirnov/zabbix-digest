@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "type": "digest",
+  "generated_at": "2026-10-28T06:10:00+01:00",
+  "timezone": "Europe/Berlin",
+  "recipient": {
+    "email": "alice@example.com"
+  },
+  "subscription": {
+    "id": "a1b2",
+    "name": "DB",
+    "transport": "email",
+    "options": {}
+  },
+  "header": null,
+  "footer": null,
+  "unsubscribe": {
+    "url": "https://digest.example.com/unsubscribe/EXAMPLE-unsubscribe-token-0001",
+    "text": "To unsubscribe from this digest, contact your Zabbix administrator."
+  },
+  "links": {
+    "widget": "https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=12",
+    "zabbix": "https://zabbix.example.com"
+  },
+  "digest": {
+    "widget_name": "DB problems",
+    "dashboard_name": "Ops",
+    "problems": [
+      {
+        "eventid": "103",
+        "triggerid": "13",
+        "name": "Memory low",
+        "severity": {
+          "value": 4,
+          "name": "High"
+        },
+        "start_time": "2026-10-28T05:23:00+01:00",
+        "start_timestamp": 1793161380,
+        "duration_seconds": 2820,
+        "duration": "47m 0s",
+        "acknowledged": false,
+        "suppressed": false,
+        "hosts": [
+          {
+            "hostid": "3",
+            "name": "app2"
+          }
+        ],
+        "host_name": "app2",
+        "tags": [
+          {
+            "tag": "service",
+            "value": "db"
+          },
+          {
+            "tag": "env",
+            "value": "prod"
+          }
+        ],
+        "tags_display": [
+          "env: prod",
+          "service: db"
+        ],
+        "url": "https://zabbix.example.com/tr_events.php?triggerid=13&eventid=103"
+      },
+      {
+        "eventid": "102",
+        "triggerid": "12",
+        "name": "CPU high",
+        "severity": {
+          "value": 4,
+          "name": "High"
+        },
+        "start_time": "2026-10-28T03:00:00+01:00",
+        "start_timestamp": 1793152800,
+        "duration_seconds": 11400,
+        "duration": "3h 10m",
+        "acknowledged": true,
+        "suppressed": false,
+        "hosts": [
+          {
+            "hostid": "2",
+            "name": "app1"
+          }
+        ],
+        "host_name": "app1",
+        "tags": [],
+        "tags_display": [],
+        "url": "https://zabbix.example.com/tr_events.php?triggerid=12&eventid=102"
+      }
+    ],
+    "shown": 2,
+    "total": 3,
+    "total_exact": true,
+    "truncated": true,
+    "display": {
+      "show_tags": true
+    },
+    "filters": {
+      "min_severity": null,
+      "hide_acknowledged": false,
+      "hide_suppressed": false
+    }
+  }
+}

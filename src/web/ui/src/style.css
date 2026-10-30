@@ -1,0 +1,183 @@
+:root {
+  --bg: #f4f5f7;
+  --panel: #ffffff;
+  --text: #1f2c33;
+  --muted: #5b6b75;
+  --border: #d6dadd;
+  --accent: #0a66b7;
+  --danger: #c62828;
+  --danger-bg: #fdecea;
+  --ok: #2f7d32;
+  --warn-bg: #fff3cd;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+header.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+header.top h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+nav button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.banner {
+  background: var(--warn-bg);
+  border: 1px solid #e0b100;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+label {
+  display: block;
+  margin: 10px 0 4px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+input[type="time"],
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+button,
+a.button {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #e8ebed;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* A real link (open in new tab, copy URL) that looks like a button. */
+a.button {
+  display: inline-block;
+  color: inherit;
+  font-family: inherit;
+  line-height: normal;
+  text-decoration: none;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.error {
+  color: var(--danger);
+  margin-top: 8px;
+}
+
+.success {
+  color: var(--ok);
+  margin-top: 8px;
+}
+
+table.list {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.list th,
+table.list td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Disabled subscription: the whole row is red, so it is not missed. */
+.disabled-row > td {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.disabled-row > td .muted {
+  color: var(--danger);
+}
+
+.disabled-row .status {
+  font-weight: bold;
+}
+
+iframe.preview {
+  width: 100%;
+  height: 600px;
+  border: 1px solid var(--border);
+  background: #fff;
+}

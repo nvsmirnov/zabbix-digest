@@ -1,0 +1,45 @@
+# Zabbix Digest web backend configuration.
+# Environment overrides work as in Core: SMTP__HOST -> smtp.host, ADMIN_EMAILS="a@x.com,b@x.com".
+# Values marked CHANGE-ME are placeholders.
+
+internal_api_key: CHANGE-ME-same-key-as-in-core-config        # at least 16 characters
+proxy_use_internal: false               # true: requests to Core use HTTP_PROXY/HTTPS_PROXY/NO_PROXY
+session_secret: CHANGE-ME-long-random-string-at-least-32-chars
+
+users_file: /data/users.yaml           # authoritative user configuration (Core uses http mode)
+state_dir: /data/web-state             # one-time login link bookkeeping
+core_url: http://core:8081             # internal URL of Core
+core_timeout: 60s
+help_url: null                         # link to user help in the UI (http/https); empty: no link
+public_url: https://digest.example.com # CHANGE-ME: public URL used in emailed links
+
+admin_emails: []                       # e.g. [admin@example.com]; restart required after changes
+max_subscriptions_per_user: 20         # 0 disables the limit
+subscription_id_length: 4
+
+login_link_ttl: 15m
+impersonation_ttl: 1h
+session_max_age: 400d
+cookie_secure: true                    # set false only for plain HTTP test setups
+trust_proxy_headers: false             # true only behind a trusted reverse proxy
+
+rate_limits:
+  login_link_per_ip: {limit: 10, period: 1h}
+  login_link_per_email: {limit: 3, period: 1h}
+  token_auth_per_ip: {limit: 20, period: 1h}
+  link_consume_per_ip: {limit: 30, period: 1h}
+  unsubscribe_per_ip: {limit: 30, period: 1h}
+
+http:
+  host: 0.0.0.0
+  port: 8080
+
+static_dir: /app/ui                    # compiled Vue application
+
+log:
+  level: INFO
+  format: json
+
+sentry_dsn: null                       # backend
+sentry_browser_dsn: null               # Vue application (public value)
+sentry_environment: null

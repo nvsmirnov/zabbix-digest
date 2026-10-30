@@ -1,0 +1,6 @@
+# Web backend runtime dependencies.
+-r ../common/requirements.txt
+fastapi==0.162.0
+itsdangerous==2.2.0
+prometheus_client==0.26.0
+uvicorn==0.54.0

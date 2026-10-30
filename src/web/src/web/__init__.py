@@ -1,0 +1,1 @@
+"""Web frontend backend (FastAPI)."""

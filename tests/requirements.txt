@@ -1,0 +1,9 @@
+# Development and tests: both components plus test tools.
+# Web tests run a real Core in-process, so both components are needed.
+-r ../src/core/requirements.txt
+-r ../src/web/requirements.txt
+aiosmtpd==1.4.6
+pytest==9.2.0
+pytest-asyncio==1.4.1
+# Test CA and certificates for TLS tests.
+trustme==1.2.1

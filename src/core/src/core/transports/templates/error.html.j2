@@ -1,0 +1,11 @@
+{% extends "base.html.j2" %}
+{% block title %}The digest{% if m.subscription.name %} "{{ m.subscription.name }}"{% endif %} could not be prepared{% endblock %}
+{% block content %}
+<div style="margin:0 0 12px 0;padding:10px 12px;background:#fdecea;border:1px solid #e45959;color:#611a15;">
+<p style="margin:0 0 6px 0;font-weight:bold;">{{ m.error.message }}</p>
+{% if m.error.details %}<p style="margin:0;font-size:12px;">Details: {{ m.error.details }}</p>{% endif %}
+</div>
+<p style="margin:0 0 6px 0;">Subscription: #{{ m.subscription.id }}{% if m.subscription.name %} ({{ m.subscription.name }}){% endif %}</p>
+<p style="margin:0 0 6px 0;">Widget link: <a href="{{ m.links.widget }}" style="color:#0a66b7;">{{ m.links.widget }}</a></p>
+<p style="margin:0;color:#5b6b75;">Digest delivery resumes automatically when the problem is fixed. This notice is repeated at every scheduled time while the problem remains.</p>
+{% endblock %}

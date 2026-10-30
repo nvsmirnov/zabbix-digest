@@ -1,0 +1,38 @@
+{% set colors = {0: "#97AAB3", 1: "#7499FF", 2: "#FFC859", 3: "#FFA059", 4: "#E97659", 5: "#E45959"} %}
+{% set d = m.digest %}
+<table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #d6dadd;">
+<thead>
+<tr style="background:#e8ebed;text-align:left;">
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Time</th>
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Severity</th>
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Host</th>
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Problem</th>
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Duration</th>
+{% if d.display.show_tags %}<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Tags</th>{% endif %}
+</tr>
+</thead>
+<tbody>
+{% for p in d.problems %}
+<tr>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;white-space:nowrap;">{{ p.start_time[:19] | replace("T", " ") }}</td>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;white-space:nowrap;background:{{ colors.get(p.severity.value, '#97AAB3') }};">{{ p.severity.name }}</td>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;">{{ p.host_name }}</td>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;"><a href="{{ p.url }}" style="color:#0a66b7;">{{ p.name }}</a>{% if p.acknowledged %} <span style="color:#2f7d32;font-size:11px;">[ack]</span>{% endif %}{% if p.suppressed %} <span style="color:#7a8890;font-size:11px;">[suppressed]</span>{% endif %}</td>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;white-space:nowrap;">{{ p.duration }}</td>
+{% if d.display.show_tags %}<td style="padding:6px 8px;border-bottom:1px solid #eceff1;font-size:12px;">{% for t in p.tags_display %}<span style="display:inline-block;margin:1px 2px;padding:1px 4px;background:#eceff1;border-radius:2px;">{{ t }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</td>{% endif %}
+</tr>
+{% else %}
+<tr><td colspan="6" style="padding:12px 8px;color:#5b6b75;">No active problems match the widget filter.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% if d.truncated %}
+<div style="margin:12px 0 0 0;padding:10px 12px;background:#fff3cd;border:1px solid #e0b100;color:#5c4400;font-weight:bold;">
+{% if d.total_exact %}
+Showing {{ d.shown }} of {{ d.total }} matching problems. The list is limited by the widget settings.
+{% else %}
+Showing {{ d.shown }} problems. The report is incomplete: more problems match than could be retrieved.
+{% endif %}
+<a href="{{ m.links.widget }}" style="color:#5c4400;">Open the widget in Zabbix</a> to see all problems.
+</div>
+{% endif %}

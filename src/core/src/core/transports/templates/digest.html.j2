@@ -1,0 +1,7 @@
+{% extends "base.html.j2" %}
+{# The problem table comes first: mail clients and mobile notifications show the start of the message. #}
+{% block heading %}{% endblock %}
+{% block content %}
+{% include "_problems.html.j2" %}
+{% include "_summary.html.j2" %}
+{% endblock %}

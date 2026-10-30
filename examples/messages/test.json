@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "type": "test",
+  "generated_at": "2026-10-28T06:10:00+01:00",
+  "timezone": "Europe/Berlin",
+  "recipient": {
+    "email": "alice@example.com"
+  },
+  "subscription": {
+    "id": "a1b2",
+    "name": "DB",
+    "transport": "email",
+    "options": {}
+  },
+  "header": null,
+  "footer": null,
+  "unsubscribe": {
+    "url": "https://digest.example.com/unsubscribe/EXAMPLE-unsubscribe-token-0001",
+    "text": "To unsubscribe from this digest, contact your Zabbix administrator."
+  },
+  "links": {
+    "widget": "https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=12",
+    "zabbix": "https://zabbix.example.com"
+  },
+  "digest": {
+    "widget_name": "TEST",
+    "dashboard_name": "TEST",
+    "problems": [
+      {
+        "eventid": "1",
+        "triggerid": "1",
+        "name": "TEST: Disk is full on /var",
+        "severity": {
+          "value": 5,
+          "name": "Disaster"
+        },
+        "start_time": "2026-10-28T03:08:00+01:00",
+        "start_timestamp": 1793153280,
+        "duration_seconds": 10920,
+        "duration": "3h 2m",
+        "acknowledged": false,
+        "suppressed": false,
+        "hosts": [
+          {
+            "hostid": "1",
+            "name": "test-host-1"
+          }
+        ],
+        "host_name": "test-host-1",
+        "tags": [
+          {
+            "tag": "service",
+            "value": "storage"
+          }
+        ],
+        "tags_display": [
+          "service: storage"
+        ],
+        "url": "https://zabbix.example.com"
+      },
+      {
+        "eventid": "2",
+        "triggerid": "2",
+        "name": "TEST: High CPU load",
+        "severity": {
+          "value": 4,
+          "name": "High"
+        },
+        "start_time": "2026-10-28T05:23:00+01:00",
+        "start_timestamp": 1793161380,
+        "duration_seconds": 2820,
+        "duration": "47m 0s",
+        "acknowledged": false,
+        "suppressed": false,
+        "hosts": [
+          {
+            "hostid": "2",
+            "name": "test-host-2"
+          }
+        ],
+        "host_name": "test-host-2",
+        "tags": [
+          {
+            "tag": "service",
+            "value": "compute"
+          }
+        ],
+        "tags_display": [
+          "service: compute"
+        ],
+        "url": "https://zabbix.example.com"
+      },
+      {
+        "eventid": "3",
+        "triggerid": "3",
+        "name": "TEST: Certificate expires in 10 days",
+        "severity": {
+          "value": 2,
+          "name": "Warning"
+        },
+        "start_time": "2026-10-23T07:10:00+02:00",
+        "start_timestamp": 1792732200,
+        "duration_seconds": 432000,
+        "duration": "5d 0h 0m",
+        "acknowledged": false,
+        "suppressed": false,
+        "hosts": [
+          {
+            "hostid": "3",
+            "name": "test-host-3"
+          }
+        ],
+        "host_name": "test-host-3",
+        "tags": [
+          {
+            "tag": "scope",
+            "value": "security"
+          }
+        ],
+        "tags_display": [
+          "scope: security"
+        ],
+        "url": "https://zabbix.example.com"
+      }
+    ],
+    "shown": 3,
+    "total": 3,
+    "total_exact": true,
+    "truncated": false,
+    "display": {
+      "show_tags": true
+    },
+    "filters": {
+      "min_severity": null,
+      "hide_acknowledged": false,
+      "hide_suppressed": false
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# Core service runtime dependencies.
+-r ../common/requirements.txt
+fastapi==0.162.0
+Jinja2==3.1.6
+prometheus_client==0.26.0
+uvicorn==0.54.0
