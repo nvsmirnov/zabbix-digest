@@ -794,14 +794,39 @@ def create_app(settings: WebSettings, core_transport=None) -> FastAPI:
         web.audit(ctx, "test_send", subscription=sub_id)
         return {"ok": True}
 
-    # Impersonation.
+    # Administration.
 
-    @app.post("/api/admin/impersonate")
-    async def impersonate(body: Impersonate, request: Request) -> Response:
+    def require_admin(request: Request) -> AuthContext:
         ctx = ctx_required(request)
         if not web.sessions.is_admin(ctx.real):
             web.metrics.auth_failures.labels(reason="not_admin").inc()
             raise ApiError(403, "forbidden", "Not allowed.")
+        return ctx
+
+    @app.get("/api/admin/users")
+    async def admin_users(request: Request) -> dict:
+        require_admin(request)
+        rows = []
+        for user in web.read_users().get("users") or []:
+            subs = user.get("subscriptions") or []
+            rows.append({
+                "email": user["email"],
+                "zabbix_userid": user.get("zabbix_userid"),
+                "subscriptions_total": len(subs),
+                "subscriptions_enabled": sum(1 for s in subs if s.get("enabled", True)),
+            })
+        rows.sort(key=lambda r: r["email"].lower())
+        stats = {
+            "users": len(rows),
+            "users_with_active": sum(1 for r in rows if r["subscriptions_enabled"]),
+            "subscriptions": sum(r["subscriptions_total"] for r in rows),
+            "subscriptions_enabled": sum(r["subscriptions_enabled"] for r in rows),
+        }
+        return {"stats": stats, "users": rows}
+
+    @app.post("/api/admin/impersonate")
+    async def impersonate(body: Impersonate, request: Request) -> Response:
+        ctx = require_admin(request)
         email = body.email.strip()
         target = find_user(web.read_users(), email=email)
         if target is None:

@@ -101,7 +101,7 @@ Responsibilities:
 
 The frontend does not contact Zabbix and does not send messages itself. Zabbix requests and all sending (digests, test messages, login links, unsubscribe confirmations) are done by Core; the frontend requests them through the internal API.
 - Unsubscribe functionality.
-- Limited administrator impersonation.
+- Administration page for configured administrators: statistics, user list, impersonation.
 - Metrics and health checks.
 
 The frontend backend serves the compiled Vue static files.
@@ -1560,8 +1560,7 @@ The frontend provides:
 - Profile deletion.
 - Unsubscribe confirmation.
 - Administrator impersonation control.
-
-No full administrative management interface is required.
+- Administration page.
 
 The page header shows the email of the signed-in user (the target user during impersonation).
 
@@ -1821,9 +1820,7 @@ Already running digest tasks may finish according to the general configuration s
 
 ### Purpose
 
-Provide a minimal support feature allowing designated administrators to act as a user.
-
-Do not create a full administrative interface.
+Allow designated administrators to see the users of the service and to act as a user for support.
 
 ### Administrator Configuration
 
@@ -1839,17 +1836,14 @@ Administrative privileges are not stored in `users.yaml`.
 
 ### UI
 
-Authorized administrators see an **Impersonate** button.
+Authorized administrators see an **Admin** button in the page header (not during impersonation). It opens the administration page:
 
-The button allows entering a target user's email.
+- Statistics: the number of users, the number of users with at least one enabled subscription, enabled / total subscriptions.
+- A user list: email, Zabbix user ID, subscriptions (enabled / total), and an **Impersonate** button per row.
+- Filters in the list header: text by email, and all / active / non-active users (with / without enabled subscriptions).
+- The data comes from the frontend user configuration. Tokens and other secrets are never shown.
 
-After impersonation starts, show the normal user UI.
-
-The only required additional UI control is:
-
-**Stop impersonation**
-
-Do not introduce additional administrative screens.
+After impersonation starts, show the normal user UI with a **Stop impersonation** control.
 
 ### Permissions
 
@@ -2630,7 +2624,6 @@ The initial MVP does not require:
 - Per-user column customization.
 - Per-subscription filter overrides, except the filter overrides described in Filtering.
 - Custom UI-based filter editors.
-- Full administrative dashboard.
 - User role management beyond configured impersonation administrators.
 - Separate password authentication.
 - Keycloak or another external identity provider.
@@ -2704,7 +2697,7 @@ The MVP is acceptable when users can:
 The MVP is acceptable when configured administrators can:
 
 - Authenticate normally.
-- Impersonate a user by email.
+- Impersonate a user from the user list.
 - Perform normal user actions during impersonation.
 - Stop impersonation.
 - Return to their own session.

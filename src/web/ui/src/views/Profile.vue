@@ -42,18 +42,6 @@
       <p v-if="tokenError" class="error">{{ tokenError }}</p>
     </div>
 
-    <div v-if="me.is_admin && !me.impersonating" class="panel">
-      <h3>Impersonate</h3>
-      <form @submit.prevent="impersonate">
-        <label for="imp-email">User email</label>
-        <input id="imp-email" v-model.trim="impEmail" type="email" required />
-        <div class="actions">
-          <button class="primary" type="submit" :disabled="busy">Impersonate</button>
-        </div>
-      </form>
-      <p v-if="impError" class="error">{{ impError }}</p>
-    </div>
-
     <div class="panel">
       <h3>Sessions</h3>
       <p class="muted">Log out on all devices and browsers, including this one.</p>
@@ -90,8 +78,6 @@ const emailError = ref("");
 const token = ref("");
 const tokenMessage = ref("");
 const tokenError = ref("");
-const impEmail = ref("");
-const impError = ref("");
 const sessionError = ref("");
 const confirmText = ref("");
 const deleteError = ref("");
@@ -131,14 +117,6 @@ function changeToken() {
     await api.post("/api/profile/token", { token: token.value });
     token.value = "";
     tokenMessage.value = "Token saved.";
-  });
-}
-
-function impersonate() {
-  guarded(impError, async () => {
-    await api.post("/api/admin/impersonate", { email: impEmail.value });
-    impEmail.value = "";
-    emit("changed");
   });
 }
 

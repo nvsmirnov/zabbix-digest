@@ -23,6 +23,12 @@ Items marked "needs agreement" change or narrow documented behavior and must be 
 - The digest message carries `digest.filters`; the email lists the active overrides under the source link.
 - The web frontend stores only overrides that differ from the default.
 
+## Administration page (agreed)
+
+- The MVP restriction "no additional administrative screens" was removed from `docs/AI-brief.md`.
+- Admin button in the header opens the page: statistics and the user list with impersonation. The old impersonation form by email on the profile page was replaced by the list.
+- Data from the web user configuration only (no delivery state from Core). Filters (email substring, all / active / non-active) work in the browser.
+
 ## Operational data (agreed)
 
 - Not shown. The column was empty in digests while the Zabbix dashboard showed values. Probable cause (not verified): `problem.get` returns `opdata` only for triggers with an operational data expression, while the Zabbix UI otherwise shows latest item values. The column was removed instead of reproducing that logic.

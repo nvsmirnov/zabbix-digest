@@ -427,6 +427,33 @@ async def test_impersonation(tmp_path):
         assert (await admin.get("/api/me")).json()["email"] == "admin@example.com"
 
 
+
+async def test_admin_user_list(tmp_path):
+    admin_token = "d" * 64
+    env = Env(tmp_path)
+    env.zabbix.users[admin_token] = {"userid": "1", "username": "admin",
+                                     "medias": [{"sendto": ["admin@example.com"], "active": "0"}], "usrgrps": []}
+    async with env.client() as alice:
+        await register(env, alice)
+        for time_ in ("08:00", "09:00"):
+            assert (await alice.post("/api/subscriptions", json={"widget_url": WIDGET_URL, "time": time_})).status_code == 200
+        sub_id = env.data()["users"][0]["subscriptions"][0]["id"]
+        r = await alice.put(f"/api/subscriptions/{sub_id}", json={"widget_url": WIDGET_URL, "time": "08:00", "enabled": False})
+        assert r.status_code == 200
+        assert (await alice.get("/api/admin/users")).status_code == 403
+    async with env.client() as admin:
+        await register(env, admin, token=admin_token, email="admin@example.com")
+        r = await admin.get("/api/admin/users")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["stats"] == {"users": 2, "users_with_active": 1, "subscriptions": 2, "subscriptions_enabled": 1}
+        assert [u["email"] for u in data["users"]] == ["admin@example.com", "alice@example.com"]
+        assert data["users"][1] == {"email": "alice@example.com", "zabbix_userid": "7",
+                                    "subscriptions_total": 2, "subscriptions_enabled": 1}
+        assert "zabbix_token" not in r.text and TOKEN not in r.text
+        assert (await admin.post("/api/admin/impersonate", json={"email": "alice@example.com"})).status_code == 200
+        assert (await admin.get("/api/me")).json()["email"] == "alice@example.com"
+
 async def test_impersonation_cookie_expires(tmp_path, monkeypatch):
     admin_token = "d" * 64
     env = Env(tmp_path, impersonation_ttl=60)

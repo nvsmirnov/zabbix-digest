@@ -65,7 +65,7 @@ With the stub:
   - `admin@example.com` (frontend administrator, the default of `ADMIN_EMAILS`)
     - token: `fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210`
 - Users and tokens are set by `STUB_USERS` (`email=token` pairs separated by spaces or commas). All stub users see the same dashboard and problems.
-- As `admin@example.com`, use impersonation to act as `demo@example.com` after demo has registered.
+- As `admin@example.com`, open Admin in the header and press Impersonate next to `demo@example.com` after demo has registered.
 - Add a subscription with the link `http://zabbix.localhost:8090/zabbix.php?action=dashboard.view&dashboardid=1`.
 - Preview shows 5 of 6 matching problems. Problems hidden by the widget filters (severity, host group, tag, suppression) are described in `examples/zabbix-stub/data.yaml`.
 - Send now: the "Send now" button of the subscription, or `docker compose -f examples/docker-compose.yml exec core python -m core once --force`. The mail appears in Mailpit.
@@ -238,7 +238,8 @@ The whole file is secret: keep it at mode 0600 and do not share it.
 - Subscriptions: create, edit, enable/disable, delete, preview (email only, real data, nothing sent), send now (real digest, delivered immediately; an empty report is not sent; errors are shown instead of sending an error notification; the regular schedule is not affected), test send (synthetic data, real delivery).
 - Profile: change email to another address of the same Zabbix user, replace the token, log out all sessions, delete the profile (type `DELETE`).
 - Unsubscribe: the link in a digest opens a confirmation page. Only the button click disables the subscription; a confirmation email is sent once.
-- Administrators (`admin_emails`) see an "Impersonate" form on the profile page. During impersonation the normal UI is shown with a "Stop impersonation" button. Impersonation ends after `impersonation_ttl`, when the browser closes, or when the target logs out all sessions. Audit logs record the administrator as the actor.
+- Administrators (`admin_emails`) see an "Admin" button in the header (not during impersonation). The page shows statistics (users, users with active subscriptions, enabled / total subscriptions) and the user list: email, Zabbix user ID, subscriptions (enabled / total), an "Impersonate" button per row. Filters in the list header: email substring and All / Active / Non-active (active: at least one enabled subscription).
+- During impersonation the normal UI is shown with a "Stop impersonation" button. Impersonation ends after `impersonation_ttl`, when the browser closes, or when the target logs out all sessions. Audit logs record the administrator as the actor.
 
 ## Operations
 

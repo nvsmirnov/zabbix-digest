@@ -53,6 +53,7 @@ Used by the Vue application. Mutating requests require `X-Requested-With: zabbix
 - `POST /api/subscriptions`, `PUT /api/subscriptions/{id}`, `DELETE /api/subscriptions/{id}`.
 - `POST /api/subscriptions/{id}/preview`, `POST /api/subscriptions/{id}/test-send`, `POST /api/subscriptions/{id}/send-now` (`{result, shown, total, total_exact}`).
 - `POST /api/profile/token`, `GET /api/profile/emails`, `POST /api/profile/email`, `POST /api/profile/delete` (`{"confirm": "DELETE"}`).
+- `GET /api/admin/users` - administrators only (403 otherwise). `{stats: {users, users_with_active, subscriptions, subscriptions_enabled}, users: [{email, zabbix_userid, subscriptions_total, subscriptions_enabled}]}`, sorted by email. No tokens.
 - `POST /api/admin/impersonate` (`{email}`), `POST /api/admin/stop-impersonation`.
 - `GET /api/unsubscribe/{token}`, `POST /api/unsubscribe/{token}` (no authentication).
 

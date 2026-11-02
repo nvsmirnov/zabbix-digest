@@ -6,6 +6,9 @@
         <span class="muted" :title="me.impersonating ? `Signed in as ${me.real_email}` : ''">{{ me.email }}</span>
         <button :class="{ active: tab === 'subscriptions' }" @click="tab = 'subscriptions'">Subscriptions</button>
         <button :class="{ active: tab === 'profile' }" @click="tab = 'profile'">Profile</button>
+        <button v-if="me.is_admin && !me.impersonating" :class="{ active: tab === 'admin' }" @click="tab = 'admin'">
+          Admin
+        </button>
         <button @click="logout">Log out</button>
         <a v-if="helpUrl" class="button" :href="helpUrl" target="_blank" rel="noopener">Help</a>
       </nav>
@@ -33,6 +36,7 @@
           <button @click="stopImpersonation">Stop impersonation</button>
         </div>
         <Subscriptions v-if="tab === 'subscriptions'" :me="me" @changed="load" />
+        <Admin v-else-if="tab === 'admin' && me.is_admin && !me.impersonating" :me="me" @changed="afterImpersonate" />
         <Profile v-else :me="me" @changed="load" @logged-out="loggedOut" />
       </template>
     </template>
@@ -47,6 +51,7 @@ import LinkLogin from "./views/LinkLogin.vue";
 import Unsubscribe from "./views/Unsubscribe.vue";
 import Subscriptions from "./views/Subscriptions.vue";
 import Profile from "./views/Profile.vue";
+import Admin from "./views/Admin.vue";
 
 function parseRoute() {
   const path = window.location.pathname;
@@ -97,6 +102,11 @@ async function logout() {
   } finally {
     loggedOut();
   }
+}
+
+async function afterImpersonate() {
+  tab.value = "subscriptions";
+  await load();
 }
 
 async function stopImpersonation() {

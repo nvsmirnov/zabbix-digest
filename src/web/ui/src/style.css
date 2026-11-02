@@ -85,6 +85,32 @@ select {
   font-size: 14px;
 }
 
+/* List header: title, filter, buttons in one row. */
+.list-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.list-head h2,
+.list-head h3 {
+  margin: 0;
+  flex: 1 0 auto;
+}
+
+.list-head input,
+.list-head select {
+  width: auto;
+  flex: 0 1 260px;
+  margin: 0;
+}
+
+.list-head select {
+  flex-basis: 140px;
+}
+
 .hint {
   color: var(--muted);
   font-size: 12px;
