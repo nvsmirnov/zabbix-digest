@@ -15,6 +15,7 @@
 {% if m.header %}<div style="margin:0 0 12px 0;white-space:pre-line;">{{ m.header }}</div>{% endif %}
 {% block content %}{% endblock %}
 {% if m.footer %}<div style="margin:16px 0 0 0;white-space:pre-line;">{{ m.footer }}</div>{% endif %}
+{% block notice %}
 <div style="margin:24px 0 0 0;padding:8px 0 0 0;border-top:1px solid #d6dadd;color:#7a8890;font-size:11px;">
 {% if m.unsubscribe.url %}
 To stop receiving this digest, <a href="{{ m.unsubscribe.url }}" style="color:#7a8890;">unsubscribe here</a>.
@@ -22,6 +23,7 @@ To stop receiving this digest, <a href="{{ m.unsubscribe.url }}" style="color:#7
 {{ m.unsubscribe.text }}
 {% endif %}
 </div>
+{% endblock %}
 </div>
 </body>
 </html>

@@ -8,7 +8,7 @@ import re
 import secrets
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -101,6 +101,10 @@ class TokenChange(BaseModel):
 
 class EmailChange(BaseModel):
     email: str = Field(min_length=3, max_length=320)
+
+
+class ReminderIn(BaseModel):
+    reminder: Literal["weekly", "monthly"] | None = None
 
 
 class DeleteProfile(BaseModel):
@@ -564,6 +568,8 @@ def create_app(settings: WebSettings, core_transport=None) -> FastAPI:
                 {"name": t["name"], "preview": t["preview"]} for t in info.get("transports", []) if t.get("public")
             ],
             "max_subscriptions": settings.max_subscriptions_per_user or None,
+            # liveness_report: temporary old name of reminder.
+            "reminder": user.get("reminder") or user.get("liveness_report"),
             "subscriptions": [subscription_out(s) for s in user.get("subscriptions") or []],
         }
 
@@ -592,6 +598,50 @@ def create_app(settings: WebSettings, core_transport=None) -> FastAPI:
         await web.mutate(change)
         web.audit(ctx, "token_replaced")
         return {"ok": True}
+
+    @app.post("/api/profile/reminder")
+    async def set_reminder(body: ReminderIn, request: Request) -> dict:
+        ctx = ctx_required(request)
+        generation = ctx.user["generation"]
+
+        def change(cfg: dict):
+            target = find_user(cfg, generation=generation)
+            if target is None:
+                raise ApiError(404, "not_found", "Profile not found.")
+            had_old = target.pop("liveness_report", None) is not None
+            if body.reminder:
+                target["reminder"] = body.reminder
+            elif "reminder" in target:
+                target.pop("reminder")
+            elif not had_old:
+                return NO_CHANGE
+            return target
+
+        await web.mutate(change)
+        web.audit(ctx, "reminder", value=body.reminder or "off")
+        return {"reminder": body.reminder}
+
+    @app.get("/api/profile/reminder")
+    async def reminder_status(request: Request) -> dict:
+        ctx = ctx_required(request)
+        try:
+            return await web.core.reminder_status(ctx.user["email"])
+        except CoreOperationError as exc:
+            raise operation_error(exc, "reminder_status") from None
+        except CoreUnavailable:
+            raise ApiError(503, "core_unavailable", CORE_UNAVAILABLE_MESSAGE) from None
+
+    @app.post("/api/profile/reminder/test")
+    async def reminder_test(request: Request) -> dict:
+        ctx = ctx_required(request)
+        try:
+            await web.core.reminder_test(ctx.user["email"])
+        except CoreOperationError as exc:
+            raise operation_error(exc, "reminder_test") from None
+        except CoreUnavailable:
+            raise ApiError(503, "core_unavailable", CORE_UNAVAILABLE_MESSAGE) from None
+        web.audit(ctx, "reminder_test")
+        return {"sent": True}
 
     @app.get("/api/profile/emails")
     async def profile_emails(request: Request) -> dict:
@@ -746,7 +796,7 @@ def create_app(settings: WebSettings, core_transport=None) -> FastAPI:
     def operation_error(exc: CoreOperationError, operation: str) -> ApiError:
         log.warning("%s failed: core answered %s", operation.replace("_", " "), exc.describe(),
                     extra={"operation": operation})
-        body_status = {422: 400, 400: 400, 503: 503}.get(exc.status, 502)
+        body_status = {422: 400, 400: 400, 409: 409, 503: 503}.get(exc.status, 502)
         message = exc.message + (f" ({exc.details})" if exc.details else "")
         return ApiError(body_status, exc.code, message)
 

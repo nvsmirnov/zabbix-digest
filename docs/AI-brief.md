@@ -448,6 +448,21 @@ The footer must also be present in error and test messages when applicable.
 
 ---
 
+## Reminder
+
+An optional per-user reminder that the service works and watches Zabbix, for users who get no digests for a long time because nothing matches.
+
+- Setting per user: off (default), weekly, monthly. Set in the profile page; stored as `reminder` in the user configuration.
+- Sent by email to the profile address through the global SMTP settings of Core, not through subscription transports.
+- Sent only when:
+  - The user has at least one enabled subscription.
+  - The last execution of every enabled subscription was a successful check. It is not sent while a subscription has errors (the user gets error notifications then).
+  - The user's subscriptions of the day are processed. It never comes on the same day before a digest; it comes after the last subscription of the day.
+  - At least the period (7 or 30 local calendar days) passed since the last message Core recorded for the user: any digest except test messages, an error notification or a previous reminder. Turning the setting on starts the first period.
+- Content: why it is sent (no digests for N days because no active problems matched), that it confirms the service works and checks Zabbix, and the list of enabled subscriptions with their last check date.
+- Footer: how to turn the report off (link to the profile), and that the profile with all subscriptions can be deleted completely.
+- The profile page shows the last message date, the earliest next report date or why it is not sent, and a test button (a TEST version; state is not changed).
+
 ## Subscriptions
 
 ### Subscription Model

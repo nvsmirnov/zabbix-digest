@@ -9,6 +9,7 @@ from common.logs import log_context
 from common.sentry import capture_exception
 from .config import SchedulerConfig
 from .metrics import CoreMetrics
+from .reminder import ReminderSender, reminder_due
 from .processing import Processor
 from .schedule import apply_time_change, due_slot
 from .source import UsersSource
@@ -27,6 +28,7 @@ class Scheduler:
         state: StateStore,
         processor: Processor,
         metrics: CoreMetrics,
+        reminder: ReminderSender | None = None,
     ) -> None:
         self.config = config
         self.tz = tz
@@ -34,6 +36,8 @@ class Scheduler:
         self.state = state
         self.processor = processor
         self.metrics = metrics
+        self.reminder = reminder
+        # Subscription ID (or "reminder:<email>") -> task.
         self.running: dict[str, asyncio.Task] = {}
         self._workers = asyncio.Semaphore(config.max_workers)
         self.accepting = True
@@ -71,7 +75,38 @@ class Scheduler:
             self.running[sub.id] = task
             task.add_done_callback(lambda t, sid=sub.id: self.running.pop(sid, None))
             tasks.append(task)
+        tasks.extend(self.tick_reminders(now))
         return tasks
+
+    def tick_reminders(self, now: datetime | None = None) -> list[asyncio.Task]:
+        """Start reminders of users whose subscriptions are done for today."""
+        config = self.source.current
+        if self.reminder is None or config is None or not self.accepting:
+            return []
+        now = now or datetime.now(timezone.utc)
+        tasks = []
+        for user in config.users:
+            key = f"reminder:{user.email.lower()}"
+            user_state = self.reminder.track_setting(user, now)
+            if not user.reminder or key in self.running:
+                continue
+            if any(s.id in self.running for s in user.subscriptions):
+                continue
+            states = self.reminder.states(user)
+            if not reminder_due(user, states, user_state, now, self.tz,
+                                self.config.delivery_window, self.config.retry_interval):
+                continue
+            task = asyncio.create_task(self._run_reminder(user), name=key)
+            self.running[key] = task
+            task.add_done_callback(lambda t, k=key: self.running.pop(k, None))
+            tasks.append(task)
+        return tasks
+
+    async def _run_reminder(self, user) -> str:
+        async with self._workers:
+            if not self.accepting:
+                return "interrupted"
+            return await self.reminder.run(user)
 
     async def force(self, only: set[str] | None = None) -> dict[str, str]:
         """Send digests of enabled subscriptions now, ignoring the schedule. State is not changed."""
@@ -152,6 +187,8 @@ class Scheduler:
         if config is None:
             return []
         removed = self.state.cleanup(config.subscription_ids(), self.busy_ids())
+        if self.reminder:
+            self.reminder.users.cleanup({u.email for u in config.users})
         if removed:
             log.info("removed %d obsolete state file(s)", len(removed))
         return removed

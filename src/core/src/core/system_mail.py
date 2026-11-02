@@ -1,4 +1,4 @@
-"""System emails requested by the web frontend: login links and unsubscribe confirmations.
+"""System emails: login links and unsubscribe confirmations (requested by the web frontend), reminders.
 
 Sent directly through the global smtp section, not through transports: a login link
 must go to the email address itself.
@@ -36,6 +36,9 @@ class SystemMailer:
     def __init__(self, config: SmtpConfig) -> None:
         check_tls(config)
         self.config = config
+
+    async def send_html(self, to: str, subject: str, html_body: str, text: str) -> None:
+        await send_email(self.config, _message(self.config, to, subject, text, html_body))
 
     async def send_login_link(self, to: str, url: str, ttl_minutes: int) -> None:
         text = (

@@ -1,0 +1,39 @@
+{
+  "type": "reminder",
+  "test": false,
+  "generated_at": "2026-11-02T17:05:00+01:00",
+  "timezone": "Europe/Berlin",
+  "recipient": {
+    "email": "alice@example.com"
+  },
+  "period": {
+    "name": "weekly",
+    "days": 7
+  },
+  "last_contact": "2026-10-26",
+  "days_without_messages": 7,
+  "subscriptions": [
+    {
+      "id": "a1b2",
+      "title": "DB (#a1b2)",
+      "time": "08:30",
+      "transport": "email",
+      "widget_url": "https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=12",
+      "last_check": "2026-11-02"
+    },
+    {
+      "id": "3f0c",
+      "title": "#3f0c",
+      "time": "17:00",
+      "transport": "email",
+      "widget_url": "https://zabbix.example.com/zabbix.php?action=dashboard.view&dashboardid=15",
+      "last_check": "2026-11-02"
+    }
+  ],
+  "header": null,
+  "footer": null,
+  "links": {
+    "profile": "https://digest.example.com/"
+  },
+  "no_frontend_text": "To unsubscribe from this digest, contact your Zabbix administrator."
+}

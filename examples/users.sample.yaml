@@ -7,6 +7,7 @@ revision: 1
 users:
   - email: alice@example.com                       # CHANGE-ME: must be an email media of the Zabbix user
     zabbix_token: CHANGE-ME-zabbix-api-token-of-alice
+    reminder: weekly                        # optional: weekly | monthly; default: off
     subscriptions:
       - id: a1b2                                   # unique hex ID; generate with: ... new-id --file users.yaml
         name: Database servers                     # optional; shown in subject and report

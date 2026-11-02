@@ -13,6 +13,7 @@ from .messages import digest_message, error_message, test_message
 from .metrics import CoreMetrics
 from .state import RESULT_DELIVERED, RESULT_EMPTY, StateStore
 from .transports.base import DeliveryFailed, TransportRegistry
+from .user_state import UserStateStore
 from .users import Subscription, User
 from .zabbix.client import ZabbixClient
 from .zabbix.identity import validate_user
@@ -34,8 +35,11 @@ class Processor:
         transports: TransportRegistry,
         state: StateStore,
         metrics: CoreMetrics,
+        users: UserStateStore | None = None,
     ) -> None:
         self.settings = settings
+        # Records the last message sent to each user (reminders).
+        self.users = users
         self.tz = tz
         self.zabbix = zabbix
         self.transports = transports
@@ -85,6 +89,8 @@ class Processor:
             await self.transports.deliver(sub.transport, message, stop_retrying=lambda: self.shutting_down)
         finally:
             self.delivering.discard(sub.id)
+        if self.users and message["type"] in ("digest", "error"):
+            self.users.record_contact(message["recipient"]["email"], _now())
 
     # Scheduled run.
 

@@ -68,7 +68,7 @@ transports:
 
 ## Message contract (schema_version 1)
 
-Example inputs: `examples/messages/digest.json`, `error.json`, `test.json`.
+Example inputs: `examples/messages/digest.json`, `error.json`, `test.json`. `reminder.json` is not an adapter input: reminders are rendered by Core (`reminder.html.j2`) and sent by email directly.
 
 Common fields:
 

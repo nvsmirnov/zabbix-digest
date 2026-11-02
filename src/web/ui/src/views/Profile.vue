@@ -7,6 +7,38 @@
     </div>
 
     <div class="panel">
+      <h3>Reminder</h3>
+      <p class="muted">
+        A short email that confirms the service works, sent when you got no digests for a week or a month
+        (no active problems). It is sent after your last subscription of the day was checked, and not while a
+        subscription has errors.
+      </p>
+      <form @submit.prevent="saveReminder">
+        <label for="reminder">Send a reminder when there are no digests</label>
+        <select id="reminder" v-model="reminder">
+          <option value="">Off</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+        <div class="actions">
+          <button class="primary" type="submit" :disabled="busy || reminder === (me.reminder || '')">Save</button>
+          <button type="button" :disabled="busy" title="Send an example to your email" @click="testReminder">
+            Send test
+          </button>
+        </div>
+      </form>
+      <p v-if="reminderStatus" class="hint">
+        Last message: {{ reminderStatus.last_contact_at ? reminderStatus.last_contact_at.slice(0, 10) : "none recorded" }}.
+        <template v-if="reminderStatus.reminder">
+          <template v-if="reminderStatus.blocked">{{ BLOCKED[reminderStatus.blocked] }}</template>
+          <template v-else>Next reminder: not before {{ reminderStatus.next_date }}.</template>
+        </template>
+      </p>
+      <p v-if="reminderMessage" class="success">{{ reminderMessage }}</p>
+      <p v-if="reminderError" class="error">{{ reminderError }}</p>
+    </div>
+
+    <div class="panel">
       <h3>Change email</h3>
       <p class="muted">You can use another email address configured for your Zabbix user. Subscriptions are kept.</p>
       <button v-if="!emails" :disabled="busy" @click="loadEmails">Show available addresses</button>
@@ -64,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { api } from "../api.js";
 
 const props = defineProps({ me: { type: Object, required: true } });
@@ -81,6 +113,45 @@ const tokenError = ref("");
 const sessionError = ref("");
 const confirmText = ref("");
 const deleteError = ref("");
+const reminder = ref(props.me.reminder || "");
+const reminderStatus = ref(null);
+const reminderMessage = ref("");
+const reminderError = ref("");
+
+const BLOCKED = {
+  no_subscriptions: "Not sent: you have no enabled subscriptions.",
+  errors: "Not sent while a subscription has errors.",
+  not_checked: "Not sent until all enabled subscriptions were checked.",
+};
+
+async function loadReminder() {
+  try {
+    reminderStatus.value = await api.get("/api/profile/reminder");
+  } catch (e) {
+    // The status is informational; the setting works without it.
+    reminderStatus.value = null;
+  }
+}
+
+onMounted(loadReminder);
+
+function saveReminder() {
+  reminderMessage.value = "";
+  guarded(reminderError, async () => {
+    await api.post("/api/profile/reminder", { reminder: reminder.value || null });
+    reminderMessage.value = reminder.value ? "Reminder enabled." : "Reminder disabled.";
+    emit("changed");
+    await loadReminder();
+  });
+}
+
+function testReminder() {
+  reminderMessage.value = "";
+  guarded(reminderError, async () => {
+    await api.post("/api/profile/reminder/test");
+    reminderMessage.value = `Test message sent to ${props.me.email}.`;
+  });
+}
 
 async function guarded(errorRef, action) {
   busy.value = true;

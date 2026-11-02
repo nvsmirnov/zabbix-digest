@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import logging
 import signal
+from pathlib import Path
 from typing import Iterator
 
 import uvicorn
@@ -16,8 +17,10 @@ from .metrics import CoreMetrics
 from .processing import Processor
 from .scheduler import Scheduler
 from .source import make_source
+from .reminder import ReminderSender
 from .state import StateStore
 from .system_mail import SystemMailer
+from .user_state import UserStateStore
 from .transports.base import build_registry
 from .zabbix.client import ZabbixClient
 
@@ -56,10 +59,16 @@ class CoreApp:
             use_proxy=settings.proxy_use_zabbix,
         )
         self.state = StateStore(settings.state_dir)
+        self.user_state = UserStateStore(Path(settings.state_dir) / "users")
         self.mailer = SystemMailer(settings.smtp)
         self.source = source or make_source(settings, self.transports.names(), self.metrics)
-        self.processor = Processor(settings, self.tz, self.zabbix, self.transports, self.state, self.metrics)
-        self.scheduler = Scheduler(settings.scheduler, self.tz, self.source, self.state, self.processor, self.metrics)
+        self.processor = Processor(
+            settings, self.tz, self.zabbix, self.transports, self.state, self.metrics, users=self.user_state
+        )
+        self.reminder = ReminderSender(settings, self.tz, self.state, self.user_state, self.mailer, self.metrics)
+        self.scheduler = Scheduler(
+            settings.scheduler, self.tz, self.source, self.state, self.processor, self.metrics, reminder=self.reminder
+        )
         self.stop = asyncio.Event()
         self._scheduler_started = False
         self._server: _Server | None = None

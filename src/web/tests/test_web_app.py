@@ -95,8 +95,12 @@ class Env:
                 raise self.mail_error
             self.mails.append(("unsubscribed", to, title))
 
+        async def send_html(to, subject, body, text):
+            self.mails.append(("html", to, subject))
+
         self.core.mailer.send_login_link = login_link
         self.core.mailer.send_unsubscribed = unsubscribed
+        self.core.mailer.send_html = send_html
         # Core fetches its configuration from this web app.
         web_asgi = httpx.ASGITransport(app=self.app)
         self.core.source._http = httpx.AsyncClient(
@@ -427,6 +431,25 @@ async def test_impersonation(tmp_path):
         assert (await admin.get("/api/me")).json()["email"] == "admin@example.com"
 
 
+
+
+async def test_reminder_setting(tmp_path):
+    env = Env(tmp_path)
+    async with env.client() as c:
+        await register(env, c)
+        assert (await c.get("/api/me")).json()["reminder"] is None
+        r = await c.post("/api/profile/reminder", json={"reminder": "weekly"})
+        assert r.status_code == 200
+        await env.settle()
+        assert env.data()["users"][0]["reminder"] == "weekly"
+        assert (await c.get("/api/me")).json()["reminder"] == "weekly"
+        status = (await c.get("/api/profile/reminder")).json()
+        assert status["reminder"] == "weekly" and status["blocked"] == "no_subscriptions"
+        r = await c.post("/api/profile/reminder/test")
+        assert r.status_code == 200 and env.mails[-1] == ("html", "alice@example.com", "[TEST] Zabbix digest: the service is active")
+        assert (await c.post("/api/profile/reminder", json={"reminder": "daily"})).status_code == 422
+        assert (await c.post("/api/profile/reminder", json={"reminder": None})).status_code == 200
+        assert "reminder" not in env.data()["users"][0]
 
 async def test_admin_user_list(tmp_path):
     admin_token = "d" * 64

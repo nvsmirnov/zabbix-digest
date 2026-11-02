@@ -23,6 +23,16 @@ Items marked "needs agreement" change or narrow documented behavior and must be 
 - The digest message carries `digest.filters`; the email lists the active overrides under the source link.
 - The web frontend stores only overrides that differ from the default.
 
+## Reminder (agreed)
+
+- First implemented as "liveness report"; renamed to avoid confusion with health checks (`/health/live`). Core still accepts the old user field `liveness_report` (temporary); web drops it when the setting is saved.
+- Email through the global `smtp` section of Core, not through transports: one report per user, while transports are per subscription. External adapters are not affected; there is no `reminder` message type in the adapter contract.
+- Periods are counted in local calendar days (7 / 30), so a few seconds of scheduling jitter do not move the report by a day.
+- Baseline: the last message Core recorded for the user (digest of any kind except test, error notification, reminder), or the moment the setting was turned on. Per-user state `<state_dir>/users/<sha256(email)[:16]>.yaml`.
+- Not sent while any enabled subscription has a failed last result or was never checked; not sent without enabled subscriptions.
+- Checked after all of today's subscriptions of the user are done, so it never precedes a digest of the same day.
+- In file mode the setting is read at startup like the rest of `users.yaml`.
+
 ## Administration page (agreed)
 
 - The MVP restriction "no additional administrative screens" was removed from `docs/AI-brief.md`.

@@ -1,0 +1,49 @@
+{% extends "base.html.j2" %}
+{# Reminder: sent by Core through the global smtp section, not through transports. #}
+{% block banner %}
+{% if m.test %}
+<div style="margin:0 0 12px 0;padding:10px 12px;background:#1f2c33;color:#ffffff;font-size:18px;font-weight:bold;text-align:center;">TEST MESSAGE - an example of the reminder</div>
+{% endif %}
+{% endblock %}
+{% block heading %}{% endblock %}
+{% block content %}
+<p style="margin:0 0 8px 0;font-weight:bold;">
+{% if m.days_without_messages is not none and not m.test %}
+No digests were sent to you for {{ m.days_without_messages }} days: your subscriptions found no active problems.
+{% else %}
+No digests were sent to you for a while: your subscriptions found no active problems.
+{% endif %}
+</p>
+<p style="margin:0 0 12px 0;">This message confirms that Zabbix Digest works and checks Zabbix for you. It is sent {{ "every week" if m.period.name == "weekly" else "every month" }} while there is nothing else to send.</p>
+<table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #d6dadd;">
+<thead>
+<tr style="background:#e8ebed;text-align:left;">
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Active subscription</th>
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Time</th>
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Delivery</th>
+<th style="padding:6px 8px;border-bottom:1px solid #d6dadd;">Last check</th>
+</tr>
+</thead>
+<tbody>
+{% for s in m.subscriptions %}
+<tr>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;"><a href="{{ s.widget_url }}" style="color:#0a66b7;">{{ s.title }}</a></td>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;white-space:nowrap;">{{ s.time }}</td>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;">{{ s.transport }}</td>
+<td style="padding:6px 8px;border-bottom:1px solid #eceff1;white-space:nowrap;">{{ s.last_check or "-" }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<p style="margin:12px 0 4px 0;color:#5b6b75;font-size:12px;">Generated at {{ m.generated_at }} ({{ m.timezone }})</p>
+{% endblock %}
+{% block notice %}
+<div style="margin:24px 0 0 0;padding:8px 0 0 0;border-top:1px solid #d6dadd;color:#7a8890;font-size:11px;">
+{% if m.links.profile %}
+To stop these reminders, turn off "Reminder" in your <a href="{{ m.links.profile }}" style="color:#7a8890;">profile</a>.
+You can also delete your profile there: all your subscriptions are removed and you get no more messages from this service.
+{% else %}
+{{ m.no_frontend_text }}
+{% endif %}
+</div>
+{% endblock %}

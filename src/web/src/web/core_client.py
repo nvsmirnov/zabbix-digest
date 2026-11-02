@@ -135,6 +135,17 @@ class CoreClient:
         if response.status_code != 200:
             raise self._error(response)
 
+    async def reminder_status(self, email: str) -> dict:
+        response = await self._post("reminder_status", "/internal/reminder/status", {"email": email})
+        if response.status_code != 200:
+            raise self._error(response)
+        return response.json()
+
+    async def reminder_test(self, email: str) -> None:
+        response = await self._post("reminder_test", "/internal/reminder/test", {"email": email})
+        if response.status_code != 200:
+            raise self._error(response)
+
     async def info(self) -> dict:
         if self._info is not None and time.monotonic() - self._info_at < self.INFO_TTL:
             return self._info

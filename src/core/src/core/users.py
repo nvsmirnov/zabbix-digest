@@ -4,9 +4,9 @@ Validation is syntactic only. Zabbix is never contacted here.
 """
 
 import re
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
 
-from pydantic import Field, ValidationError, field_validator
+from pydantic import Field, ValidationError, field_validator, model_validator
 
 from common.settings import StrictModel, format_validation_error
 from .zabbix.urls import WidgetUrlError, parse_widget_url
@@ -114,7 +114,19 @@ class User(StrictModel):
     # Immutable per registration. Changes when a profile is deleted and created again.
     generation: str | None = None
     session_version: int = Field(default=1, ge=1)
+    # Reminder period; None: off. See reminder.py.
+    reminder: Literal["weekly", "monthly"] | None = None
     subscriptions: list[Subscription] = []
+
+    @model_validator(mode="before")
+    @classmethod
+    def _old_names(cls, data: Any) -> Any:
+        # Temporary: "liveness_report" was the first name of "reminder".
+        if isinstance(data, dict) and "liveness_report" in data:
+            data = dict(data)
+            old = data.pop("liveness_report")
+            data.setdefault("reminder", old)
+        return data
 
     @field_validator("email")
     @classmethod
@@ -150,6 +162,10 @@ class UsersConfig(StrictModel):
 
     def subscription_ids(self) -> set[str]:
         return {sub.id for _, sub in self.iter_subscriptions()}
+
+    def find_user(self, email: str) -> User | None:
+        key = email.strip().lower()
+        return next((u for u in self.users if u.email.lower() == key), None)
 
     def find_subscription(self, subscription_id: str) -> tuple[User, Subscription] | None:
         for user, sub in self.iter_subscriptions():

@@ -43,6 +43,10 @@ class LoginLinkMail(BaseModel):
     ttl_minutes: int
 
 
+class ReminderRequest(BaseModel):
+    email: str
+
+
 class UnsubscribedMail(BaseModel):
     email: str
     title: str
@@ -224,6 +228,30 @@ def create_app(core: Any) -> FastAPI:
         core.metrics.operations.labels(operation=operation, result="ok").inc()
         log.info("%s sent via %s", operation, smtp_target(core.settings.smtp), extra={"operation": operation})
         return JSONResponse({"sent": True})
+
+    def reminder_user(email: str) -> User | None:
+        bind_log_context(user=email)
+        user = core.source.current.find_user(email) if core.source.current else None
+        if user is None:
+            log.warning("reminder request for a user not in the current configuration", extra={"operation": "reminder"})
+        return user
+
+    # 409: the user is not (yet) in the configuration applied by Core, e.g. right after a change.
+    UNKNOWN_USER = {"error": "unknown_user", "message": "The profile is not known to the digest service yet. Try again later."}
+
+    @app.post("/internal/reminder/status", dependencies=internal)
+    async def reminder_status(body: ReminderRequest) -> Response:
+        user = reminder_user(body.email)
+        if user is None:
+            return JSONResponse(UNKNOWN_USER, 409)
+        return JSONResponse(core.reminder.status(user))
+
+    @app.post("/internal/reminder/test", dependencies=internal)
+    async def reminder_test(body: ReminderRequest) -> Response:
+        user = reminder_user(body.email)
+        if user is None:
+            return JSONResponse(UNKNOWN_USER, 409)
+        return await system_mail("reminder_test", core.reminder.send(user, test=True))
 
     @app.post("/internal/mail/login-link", dependencies=internal)
     async def login_link_mail(body: LoginLinkMail) -> Response:

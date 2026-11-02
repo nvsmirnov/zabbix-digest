@@ -26,6 +26,9 @@ These endpoints must not be reachable from the internet. Use HTTPS when the traf
 - `POST /internal/mail/login-link` - body `{email, url, ttl_minutes}`. Sends the login link email through the global `smtp` section of Core. 200 `{"sent": true}`; 502 `{error: "delivery_failed", message, details}` (details name the SMTP server and the cause). The URL contains the login token and is never logged.
 - `POST /internal/mail/unsubscribed` - body `{email, title, manage_url}`. Sends the unsubscribe confirmation. Same answers.
 
+- `POST /internal/reminder/status` - body `{email}`. 200 `{reminder, last_contact_at, next_date, blocked}`; `blocked`: `no_subscriptions`, `errors`, `not_checked` or null. 409 `unknown_user` when the user is not in the configuration applied by Core (e.g. right after a change).
+- `POST /internal/reminder/test` - body `{email}`. Sends a TEST reminder; state is not changed. 200 `{"sent": true}`; 502 `delivery_failed`; 409 `unknown_user`.
+
 When `internal_api_key` is not set, Core answers 404 on `/internal/*`.
 
 ### Web backend
@@ -53,6 +56,7 @@ Used by the Vue application. Mutating requests require `X-Requested-With: zabbix
 - `POST /api/subscriptions`, `PUT /api/subscriptions/{id}`, `DELETE /api/subscriptions/{id}`.
 - `POST /api/subscriptions/{id}/preview`, `POST /api/subscriptions/{id}/test-send`, `POST /api/subscriptions/{id}/send-now` (`{result, shown, total, total_exact}`).
 - `POST /api/profile/token`, `GET /api/profile/emails`, `POST /api/profile/email`, `POST /api/profile/delete` (`{"confirm": "DELETE"}`).
+- `POST /api/profile/reminder` (`{reminder: null|"weekly"|"monthly"}`), `GET /api/profile/reminder` (status from Core), `POST /api/profile/reminder/test`.
 - `GET /api/admin/users` - administrators only (403 otherwise). `{stats: {users, users_with_active, subscriptions, subscriptions_enabled}, users: [{email, zabbix_userid, subscriptions_total, subscriptions_enabled}]}`, sorted by email. No tokens.
 - `POST /api/admin/impersonate` (`{email}`), `POST /api/admin/stop-impersonation`.
 - `GET /api/unsubscribe/{token}`, `POST /api/unsubscribe/{token}` (no authentication).

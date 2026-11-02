@@ -165,6 +165,7 @@ revision: 1
 users:
   - email: alice@example.com
     zabbix_token: <token>
+    reminder: weekly
     subscriptions:
       - id: a1b2
         name: Database servers
@@ -178,6 +179,7 @@ users:
 
 - `email` - unique key and delivery address.
 - `zabbix_token` - the user's API token.
+- `reminder` - optional, `weekly` or `monthly`; default off. See Reminder.
 - `subscriptions[].id` - 1-32 lowercase hex characters, unique in the whole file.
 - `name` - optional title. Shown as `Name (#id)` in the UI; without a name only `#id`.
 - `widget_url` - dashboard link. The first Problems widget of the dashboard is used: the first page that has one, and on that page the top-left widget.
@@ -205,6 +207,20 @@ The whole file is secret: keep it at mode 0600 and do not share it.
 - When more problems match than the widget shows, the digest says "Showing N of M" and links to the widget.
 - With filter overrides the digest lists them, e.g. "Subscription filters: minimal severity High; acknowledged problems hidden."
 - Every message has an unsubscribe footer: a link with the frontend, the `messages.unsubscribe_text` without it.
+
+### Reminder
+
+- Optional, per user: off (default), weekly, monthly. Set in the profile page or `reminder` in `users.yaml`.
+- A short email that confirms the service works: no digests were sent because nothing matched. It lists the enabled subscriptions with their last check date. The footer explains how to turn it off and that the profile can be deleted completely.
+- Sent by Core to the profile email through the global `smtp` section, not through transports.
+- Sent when all hold:
+  - At least one enabled subscription; the last result of every enabled subscription is a successful check (digest or empty). Not sent while a subscription has errors.
+  - Today's subscriptions of the user are done (completed, or their delivery window ended). So it never comes before a digest of the same day; it comes after the last subscription of the day.
+  - At least 7 (weekly) or 30 (monthly) calendar days passed since the last message to the user: a digest (scheduled, send now, `once --force`), an error notification or a reminder. Test messages do not count.
+- The first period starts when the setting is turned on, so no report comes right after enabling.
+- A failed send is retried after `scheduler.retry_interval`.
+- The profile page shows the date of the last message, the earliest date of the next report or why it is not sent, and has "Send test".
+- State: `<state_dir>/users/<hash of email>.yaml`.
 
 ### Errors
 
