@@ -10,6 +10,8 @@ Filters, sorting and limits are set in the widget itself, and the user's own API
 
 Target: Zabbix 7.0 LTS (see [docs/zabbix-notes.md](docs/zabbix-notes.md)). May be compatible with other versions, without guarantees.
 
+P.S. Also here is an ad for Zabbix forum: [README-ad.md](README-ad.md)
+
 ## TL;DR: run the service
 
 ```sh
